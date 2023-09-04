@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#. openrc
+. openrc
 
 # setting default cleanup period for 30 days, unless specified by the user
 [[ -z $1 ]] && NUM_DAYS=30 || NUM_DAYS=$1
@@ -34,5 +34,5 @@ echo "*** The script will try to delete the stacks by looping over the following
 cat "${LOOKUP_TAGS}"
 echo "=================================================================================="
 for tag in $(cat "${LOOKUP_TAGS}") ; do
-	echo "./openstack-cleanup.sh --os-cloud test $tag"
+	echo "./openstack-cleanup.sh --os-cloud admin $tag"
 done
