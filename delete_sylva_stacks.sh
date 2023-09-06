@@ -1,12 +1,15 @@
 #!/bin/sh
 
-# some error codes
-NO_OPENSTACK_CLEANUP_RETRIEVED=2
+# some error codes so that the script will fail fast
+
+NO_RC_FILE=2
+NO_OPENSTACK_CLEANUP_RETRIEVED=3
+NO_PROJECTS_LIST=4
+NO_STACK_LIST=5
 
 # MANDATORY dependencies
 
-source ./openrc
-
+source ./openrc || exit "${NO_RC_FILE}"
 CLEANUP_SCRIPT="./openstack-cleanup.sh"
 CLEANUP_SCRIPT_URL_PATH="https://gitlab.com/sylva-projects/sylva-core/-/raw/main/tools/openstack-cleanup.sh"
 
@@ -30,8 +33,8 @@ THRESHOLD=$(( NUM_DAYS *  24 * 60 * 60 ))
 TAGS=$(mktemp)
 EXCLUDED_TAGS=$(mktemp)
 LOOKUP_TAGS=$(mktemp)
-ALL_PROJECTS=$(openstack project list -f json -c Name | jq -r .[].Name)
-ALL_STACKS=$(openstack stack list -f json -c ID -c "Stack Name" -c Project -c "Creation Time" | jq -r '.[]' | jq -r '.ID,."Stack Name",.Project,."Creation Time"' | xargs -n 4 | grep -E '(management|workload)')
+ALL_PROJECTS=$(openstack project list -f json -c Name | jq -r .[].Name) || exit "${NO_PROJECTS_LIST}" 
+ALL_STACKS=$(openstack stack list -f json -c ID -c "Stack Name" -c Project -c "Creation Time" | jq -r '.[]' | jq -r '.ID,."Stack Name",.Project,."Creation Time"' | xargs -n 4 | grep -E '(management|workload)') || exit "${NO_STACK_LIST}"
 
 while read stack_id stack_name project_name creation_time; do
 	creation_time_epoch=$(date --date="${creation_time}" +%s)
